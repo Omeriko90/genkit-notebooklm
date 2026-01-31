@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { synthesisRouter } from './routes/synthesis';
 import { errorHandler } from './middleware/errorHandler';
+import { userRouter } from './routes/user';
+import { jobsRouter } from './routes/jobs';
 
 dotenv.config();
 
@@ -17,6 +19,11 @@ app.use(express.json({ limit: '50mb' }));
 
 // Routes
 app.use('/api/synthesis', synthesisRouter);
+app.use('/api/users', userRouter);
+app.use('/api/jobs', jobsRouter);
+app.use('/health', (req, res) => {
+  res.json({ message: 'OK' });
+});
 
 // Error handling
 app.use(errorHandler);

@@ -1,6 +1,5 @@
 import { z } from "genkit";
 import { ai } from "../config";
-import { gemini15Flash } from "@genkit-ai/googleai";
 
 // Flow #1: Summarize Source
 const summarizeSourceInputSchema = z.object({
@@ -33,7 +32,6 @@ export const summarizeSourceFlow = ai.defineFlow(
     `;
 
     const summaryResponse = await ai.generate({
-      model: gemini15Flash,
       prompt,
       config: { temperature: 0.8 },
       output: { schema: summarizeSourceOutputSchema },

@@ -1,4 +1,3 @@
-import { gemini15Flash } from "@genkit-ai/googleai";
 import { z } from "genkit";
 import { ai } from "../config";
 
@@ -28,7 +27,6 @@ export const discussionHooksFlow = ai.defineFlow(
     `;
 
     const hookResponse = await ai.generate({
-      model: gemini15Flash,
       prompt,
       config: { temperature: 0.7 },
       output: { schema: discussionHooksOutputSchema },

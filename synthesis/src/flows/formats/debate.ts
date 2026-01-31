@@ -1,6 +1,5 @@
 import { z } from "genkit";
 import { ai } from "../../config";
-import { gemini15Flash } from "@genkit-ai/googleai";
 import { debatePodcastOptionsSchema } from "../../schemas/formats/debate";
 
 const finalPodcastScriptInputSchema = z.object({
@@ -82,7 +81,6 @@ export const debatePodcastScriptFlow = ai.defineFlow(
     `;
 
     const scriptResponse = await ai.generate({
-      model: gemini15Flash,
       prompt,
       config: { temperature: 0.8 },
       output: { schema: finalPodcastScriptOutputSchema },

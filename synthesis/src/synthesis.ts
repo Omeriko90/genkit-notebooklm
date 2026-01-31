@@ -20,6 +20,14 @@ export async function synthesize(request: SynthesisRequest): Promise<SynthesisRe
   return results;
 }
 
+/**
+ * Convenience helper for jobs/automation to create a podcast directly from text inputs.
+ * Uses the same underlying flow as the `synthesize()` API.
+ */
+export async function createPodcastFromText(input: string | string[], options: PodcastOptions): Promise<PodcastResult> {
+  return generatePodcast(input, options);
+}
+
 async function generatePodcast(input: string | string[], options: PodcastOptions): Promise<PodcastResult> {
   // Generate a unique job ID for tracking this podcast generation
   const jobId = `podcast_${uuidv4()}`;

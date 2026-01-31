@@ -42,3 +42,5 @@ temp/
 
 # Generated files
 *.generated.* 
+
+/src/generated/prisma

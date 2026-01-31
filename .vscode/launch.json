@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Synthesis Server (dist)",
+            "cwd": "${workspaceFolder}/synthesis",
+            "program": "${workspaceFolder}/synthesis/dist/server.js",
+            "envFile": "${workspaceFolder}/synthesis/.env",
+            "console": "internalConsole",
+            "internalConsoleOptions": "neverOpen",
+            "restart": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/synthesis/dist/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Synthesis Server (server.ts via ts-node)",
+            "cwd": "${workspaceFolder}/synthesis",
+            "runtimeArgs": [
+                "--enable-source-maps",
+                "-r",
+                "ts-node/register/transpile-only"
+            ],
+            "args": [
+                "${workspaceFolder}/synthesis/src/server.ts"
+            ],
+            "envFile": "${workspaceFolder}/synthesis/.env",
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            "restart": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        }
+    ]
+}

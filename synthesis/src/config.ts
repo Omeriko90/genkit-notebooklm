@@ -1,8 +1,7 @@
 import * as admin from 'firebase-admin';
 import textToSpeech, { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { genkit } from "genkit";
-import { googleAI } from "@genkit-ai/googleai";
-import { gemini15Flash } from "@genkit-ai/googleai";
+import { googleAI } from '@genkit-ai/google-genai';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 
@@ -66,5 +65,7 @@ export { firebaseAdmin, storage, db, tts };
 
 export const ai = genkit({
   plugins: [googleAI()],
-  model: gemini15Flash,
+  model: googleAI.model('gemini-2.5-flash', {
+    temperature: 0.8,
+  }),
 });

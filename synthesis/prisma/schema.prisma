@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  password      String?
+  name          String?
+  avatar        String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  emailAccounts EmailAccount[]
+  newsletters   Newsletter[]
+  
+  @@map("users")
+}
+
+model EmailAccount {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     Provider
+  email        String
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("email_accounts")
+}
+
+model Newsletter {
+  id             String           @id @default(cuid())
+  userId         String
+  name           String
+  interval        Interval
+  selectedEmails  String[]
+  isActive        Boolean          @default(true)
+  lastRun         DateTime?
+  nextRun         DateTime?
+  deliveryMethod  DeliveryMethod[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  
+  // Relations
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history  NewsletterHistory[]
+  
+  @@map("newsletters")
+}
+
+model NewsletterHistory {
+  id           String     @id @default(cuid())
+  newsletterId String
+  summary      String
+  emails       Json       // Array of email metadata
+  generatedAt   DateTime   @default(now())
+  
+  // Relations
+  newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  
+  @@map("newsletter_history")
+}
+
+enum Provider {
+  GMAIL
+  OUTLOOK
+}
+
+enum Interval {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum DeliveryMethod {
+  EMAIL
+  INAPP
+  BOTH
+}
