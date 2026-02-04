@@ -6,3 +6,4 @@ newspaper3k>=0.2.8
 trafilatura>=1.6.0
 pydantic>=2.5.0
 httpx>=0.26.0
+playwright>=1.40.0

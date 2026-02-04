@@ -9,9 +9,9 @@ from fastapi import FastAPI, HTTPException
 from bs4 import BeautifulSoup
 from trafilatura import extract
 
-from models import EmailInput, ExtractionResult, ArticleOutput
+from models import EmailInput, ExtractionResult, ArticleOutput, ResolveUrlsInput, ResolveUrlsResult, ResolvedUrl
 from extractors import extract_links_from_html, extract_articles_from_newsletter
-from fetcher import fetch_multiple_articles
+from fetcher import fetch_multiple_articles, resolve_tracking_url
 
 app = FastAPI(
     title="Email Content Extractor",
@@ -77,7 +77,9 @@ async def extract_content(email: EmailInput):
                         fetched = fetched_results[article.link]
                         article.fetched_content = fetched.content
                         article.fetched_title = fetched.title
+                        article.fetched_url = fetched.final_url
                         article.fetch_error = fetched.error
+                        article.fetch_method = fetched.fetch_method
                 
                 articles_fetched = True
         
@@ -90,6 +92,30 @@ async def extract_content(email: EmailInput):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
+
+
+@app.post("/resolve-urls", response_model=ResolveUrlsResult)
+async def resolve_urls(input: ResolveUrlsInput):
+    """
+    Resolve tracking/redirect URLs to their final destinations.
+    
+    Useful for newsletter tracking links like `email.example.com/track?id=xxx`
+    that redirect to the actual article URL.
+    """
+    import asyncio
+    
+    async def resolve_one(url: str) -> ResolvedUrl:
+        final_url, error = await resolve_tracking_url(url, input.timeout)
+        return ResolvedUrl(
+            original_url=url,
+            final_url=final_url if final_url != url else None,
+            error=error
+        )
+    
+    tasks = [resolve_one(url) for url in input.urls]
+    resolved = await asyncio.gather(*tasks)
+    
+    return ResolveUrlsResult(urls=list(resolved))
 
 
 @app.get("/health")

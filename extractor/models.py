@@ -40,9 +40,17 @@ class ArticleOutput(BaseModel):
         default=None,
         description="Title extracted from the fetched article"
     )
+    fetched_url: Optional[str] = Field(
+        default=None,
+        description="Final URL after redirects (useful for tracking links)"
+    )
     fetch_error: Optional[str] = Field(
         default=None,
         description="Error message if fetching failed"
+    )
+    fetch_method: Optional[str] = Field(
+        default=None,
+        description="Method used to fetch: 'httpx' or 'playwright'"
     )
 
 
@@ -55,3 +63,26 @@ class ExtractionResult(BaseModel):
         default=False,
         description="Whether article content was fetched from links"
     )
+
+
+class ResolveUrlsInput(BaseModel):
+    """Input for URL resolution endpoint"""
+    urls: list[str] = Field(
+        description="List of URLs to resolve (tracking links will be followed to final destination)"
+    )
+    timeout: float = Field(
+        default=10.0,
+        description="Timeout in seconds for resolving each URL"
+    )
+
+
+class ResolvedUrl(BaseModel):
+    """A single resolved URL"""
+    original_url: str
+    final_url: Optional[str] = None
+    error: Optional[str] = None
+
+
+class ResolveUrlsResult(BaseModel):
+    """Result of URL resolution"""
+    urls: list[ResolvedUrl]
