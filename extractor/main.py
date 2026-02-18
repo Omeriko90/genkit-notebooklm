@@ -26,7 +26,7 @@ async def extract_content(email: EmailInput):
     Extract structured content from a newsletter email.
     
     Returns articles with their text content and "read more" links.
-    Optionally fetches full article content from the links when fetch_articles=true.
+    Always fetches full article content from the links.
     """
     try:
         soup = BeautifulSoup(email.html, 'lxml')
@@ -57,9 +57,9 @@ async def extract_content(email: EmailInput):
                     link_text=prominent_link['text'] if prominent_link else None
                 ))
         
-        # Fetch article content if requested
+        # Always fetch article content from read more links
         articles_fetched = False
-        if email.fetch_articles and articles:
+        if articles:
             # Collect URLs to fetch
             urls_to_fetch = [a.link for a in articles if a.link]
             

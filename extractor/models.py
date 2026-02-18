@@ -11,12 +11,8 @@ class EmailInput(BaseModel):
     html: str
     text: Optional[str] = None
     base_url: Optional[str] = None  # For resolving relative URLs
-    fetch_articles: bool = Field(
-        default=False,
-        description="If true, fetch full article content from 'read more' links"
-    )
     fetch_timeout: float = Field(
-        default=10.0,
+        default=30.0,
         description="Timeout in seconds for fetching each article"
     )
     max_fetch_content: int = Field(

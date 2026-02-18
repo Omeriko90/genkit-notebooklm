@@ -1,19 +1,38 @@
 """
 Article fetching logic for the Email Content Extractor Service
 
-Supports two fetching strategies:
+Supports multiple fetching strategies:
 1. Fast HTTP fetch with browser-like headers (default)
 2. Headless browser fetch via Playwright (fallback for anti-bot protected sites)
+3. Browserless.io cloud browser (best for bypassing Cloudflare and bot detection)
 """
 
 import asyncio
+import os
 import re
 from typing import Optional
 from dataclasses import dataclass
 from urllib.parse import urlparse
+from pathlib import Path
 
 import httpx
 from trafilatura import extract
+
+# Load .env file if it exists
+try:
+    from dotenv import load_dotenv
+    # Try to find .env in current directory, parent, or sibling directories
+    possible_paths = [
+        Path(__file__).parent / '.env',                    # extractor/.env
+        Path(__file__).parent.parent / '.env',              # project root/.env
+        Path(__file__).parent.parent / 'synthesis' / '.env', # synthesis/.env
+    ]
+    for env_path in possible_paths:
+        if env_path.exists():
+            load_dotenv(env_path)
+            break
+except ImportError:
+    pass  # dotenv not installed, rely on system environment variables
 
 # Try to import playwright, but make it optional
 try:
@@ -21,6 +40,17 @@ try:
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
+
+# Try to import playwright-stealth for bypassing bot detection
+try:
+    from playwright_stealth import stealth_async
+    STEALTH_AVAILABLE = True
+except ImportError:
+    STEALTH_AVAILABLE = False
+
+# Browserless.io configuration
+BROWSERLESS_API_KEY = os.environ.get("BROWSERLESS_API_KEY", "")
+BROWSERLESS_ENABLED = bool(BROWSERLESS_API_KEY)
 
 
 @dataclass
@@ -166,13 +196,108 @@ async def fetch_with_httpx(
         return FetchedArticle(url=url, error=f"Extraction failed: {str(e)}", fetch_method="httpx")
 
 
+async def fetch_with_browserless(
+    url: str,
+    timeout: float = 60.0,
+    max_content_length: int = 5000
+) -> FetchedArticle:
+    """
+    Fetch article using Browserless.io cloud browser service.
+    
+    Browserless handles Cloudflare and other bot detection automatically.
+    Requires BROWSERLESS_API_KEY environment variable.
+    """
+    if not PLAYWRIGHT_AVAILABLE:
+        return FetchedArticle(
+            url=url,
+            error="Playwright not installed. Run: pip install playwright",
+            fetch_method="browserless"
+        )
+    
+    if not BROWSERLESS_ENABLED:
+        return FetchedArticle(
+            url=url,
+            error="Browserless not configured. Set BROWSERLESS_API_KEY environment variable.",
+            fetch_method="browserless"
+        )
+    
+    try:
+        async with async_playwright() as p:
+            # Connect to Browserless.io cloud browser
+            browserless_url = f"wss://chrome.browserless.io?token={BROWSERLESS_API_KEY}"
+            
+            browser = await p.chromium.connect_over_cdp(browserless_url)
+            
+            context = await browser.new_context(
+                user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+                viewport={"width": 1920, "height": 1080},
+                locale="en-US",
+            )
+            
+            page = await context.new_page()
+            
+            # Navigate to URL
+            await page.goto(url, wait_until="domcontentloaded", timeout=timeout * 1000)
+            
+            # Wait for Cloudflare challenge to complete (if present)
+            for _ in range(15):  # Check up to 15 times (30 seconds total)
+                await page.wait_for_timeout(2000)
+                
+                html = await page.content()
+                
+                # Check if we're still on a challenge page
+                if "Verifying you are human" in html or "checking your browser" in html.lower() or "Just a moment" in html:
+                    continue  # Still on challenge page, wait more
+                
+                # Check if we got actual content
+                if "challenge-platform" not in html and len(html) > 5000:
+                    break  # Likely got past the challenge
+            
+            # Try to wait for article content
+            try:
+                await page.wait_for_selector("article, main, .content, .article-body, .post-content, p", timeout=5000)
+            except:
+                pass
+            
+            # Capture final URL after all redirects
+            final_url = page.url
+            
+            # Get the page content
+            html = await page.content()
+            
+            await browser.close()
+            
+            content, title = extract_content_and_title(html, max_content_length)
+            
+            if content:
+                return FetchedArticle(
+                    url=url,
+                    final_url=final_url if final_url != url else None,
+                    content=content,
+                    title=title,
+                    fetch_method="browserless"
+                )
+            else:
+                return FetchedArticle(
+                    url=url,
+                    final_url=final_url if final_url != url else None,
+                    error="Could not extract content from page (Browserless)",
+                    fetch_method="browserless"
+                )
+                
+    except PlaywrightTimeout:
+        return FetchedArticle(url=url, error="Browser navigation timed out (Browserless)", fetch_method="browserless")
+    except Exception as e:
+        return FetchedArticle(url=url, error=f"Browserless fetch failed: {str(e)}", fetch_method="browserless")
+
+
 async def fetch_with_playwright(
     url: str,
     timeout: float = 30.0,
     max_content_length: int = 5000
 ) -> FetchedArticle:
     """
-    Fetch article using Playwright headless browser.
+    Fetch article using Playwright headless browser (local).
     
     This is slower but handles JavaScript-rendered content and anti-bot protection.
     """
@@ -185,27 +310,58 @@ async def fetch_with_playwright(
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            # Launch with args to avoid detection
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    '--disable-blink-features=AutomationControlled',
+                    '--disable-dev-shm-usage',
+                    '--no-sandbox',
+                ]
+            )
             
             context = await browser.new_context(
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
                 viewport={"width": 1920, "height": 1080},
                 locale="en-US",
                 java_script_enabled=True,
+                bypass_csp=True,
             )
             
             page = await context.new_page()
             
-            # Navigate to URL - use 'domcontentloaded' instead of 'networkidle' 
-            # as some sites never reach networkidle due to analytics/tracking
+            # Apply stealth to avoid bot detection
+            if STEALTH_AVAILABLE:
+                await stealth_async(page)
+            else:
+                # Fallback: Remove webdriver property to avoid detection
+                await page.add_init_script("""
+                    Object.defineProperty(navigator, 'webdriver', {
+                        get: () => undefined
+                    });
+                """)
+            
+            # Navigate to URL
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout * 1000)
             
-            # Wait for content to load (handles lazy-loaded content and JS rendering)
-            await page.wait_for_timeout(3000)
+            # Wait for Cloudflare challenge to complete (if present)
+            # Cloudflare challenges typically take 3-8 seconds
+            for _ in range(10):  # Check up to 10 times (20 seconds total)
+                await page.wait_for_timeout(2000)
+                
+                html = await page.content()
+                
+                # Check if we're still on a challenge page
+                if "Verifying you are human" in html or "checking your browser" in html.lower():
+                    continue  # Still on challenge page, wait more
+                
+                # Check if we got redirected to actual content
+                if "challenge-platform" not in html and len(html) > 5000:
+                    break  # Likely got past the challenge
             
-            # Try to wait for body content to appear
+            # Try to wait for article content to appear
             try:
-                await page.wait_for_selector("article, main, .content, .article-body, p", timeout=5000)
+                await page.wait_for_selector("article, main, .content, .article-body, .post-content", timeout=5000)
             except:
                 pass  # Continue even if selector not found
             
@@ -253,13 +409,15 @@ async def fetch_article_content(
     Strategy:
     1. Resolve tracking URL to final destination (if it's a redirect)
     2. Try fast httpx fetch with browser-like headers on the final URL
-    3. If blocked (403, 401, etc.), fall back to Playwright headless browser
+    3. If blocked (403, 401, etc.), fall back to:
+       a. Browserless.io (if configured) - best for Cloudflare bypass
+       b. Local Playwright (if Browserless not available)
     
     Args:
         url: The URL to fetch
         timeout: Request timeout in seconds
         max_content_length: Maximum length of extracted content
-        use_playwright_fallback: Whether to try Playwright if httpx fails
+        use_playwright_fallback: Whether to try Playwright/Browserless if httpx fails
         
     Returns:
         FetchedArticle with content or error message
@@ -283,7 +441,7 @@ async def fetch_article_content(
     if final_url:
         result.final_url = final_url
     
-    # Step 3: Check if we should fall back to Playwright
+    # Step 3: Check if we should fall back to browser-based fetching
     if use_playwright_fallback and result.error:
         should_fallback = False
         
@@ -295,28 +453,48 @@ async def fetch_article_content(
             except (IndexError, ValueError):
                 pass
         
-        # Also try Playwright if content extraction failed
+        # Also try browser if content extraction failed
         if "Could not extract content" in (result.error or ""):
             should_fallback = True
         
-        if should_fallback and PLAYWRIGHT_AVAILABLE:
-            # Try with Playwright on the resolved URL (slower but more robust)
-            playwright_result = await fetch_with_playwright(
-                url,  # Use resolved URL
-                timeout=max(timeout, 30.0),  # Playwright needs more time
-                max_content_length=max_content_length
-            )
+        if should_fallback:
+            browser_result = None
             
-            # Only use Playwright result if it succeeded
-            if playwright_result.content:
-                playwright_result.url = original_url
-                if final_url:
-                    playwright_result.final_url = final_url
-                return playwright_result
+            # Step 3a: Try Browserless.io first (if configured) - best for Cloudflare
+            if BROWSERLESS_ENABLED:
+                browser_result = await fetch_with_browserless(
+                    url,
+                    timeout=max(timeout, 60.0),  # Browserless needs time for challenges
+                    max_content_length=max_content_length
+                )
+                
+                if browser_result.content:
+                    browser_result.url = original_url
+                    if final_url:
+                        browser_result.final_url = final_url
+                    return browser_result
             
-            # If Playwright also failed, return original error with note
-            if result.error:
-                result.error = f"{result.error} (Playwright fallback also failed: {playwright_result.error})"
+            # Step 3b: Fall back to local Playwright (if Browserless failed or not configured)
+            if PLAYWRIGHT_AVAILABLE and (not BROWSERLESS_ENABLED or not browser_result or not browser_result.content):
+                playwright_result = await fetch_with_playwright(
+                    url,
+                    timeout=max(timeout, 30.0),
+                    max_content_length=max_content_length
+                )
+                
+                if playwright_result.content:
+                    playwright_result.url = original_url
+                    if final_url:
+                        playwright_result.final_url = final_url
+                    return playwright_result
+                
+                # Build error message with all fallback attempts
+                fallback_errors = []
+                if BROWSERLESS_ENABLED and browser_result:
+                    fallback_errors.append(f"Browserless: {browser_result.error}")
+                fallback_errors.append(f"Playwright: {playwright_result.error}")
+                
+                result.error = f"{result.error} (Fallbacks failed: {'; '.join(fallback_errors)})"
     
     return result
 
