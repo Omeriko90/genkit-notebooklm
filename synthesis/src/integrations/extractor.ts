@@ -12,32 +12,43 @@ export interface ExtractedArticle {
   link?: string;
   link_text?: string;
   title?: string;
+  // Fetched content fields (from Python extractor)
+  fetched_content?: string;
+  fetched_title?: string;
+  fetched_url?: string;
+  fetch_error?: string;
+  fetch_method?: 'httpx' | 'browserless' | 'playwright';
 }
 
 export interface ExtractionResult {
   articles: ExtractedArticle[];
   all_links: { url: string; text: string; is_read_more: boolean }[];
   main_content?: string;
+  articles_fetched: boolean;
 }
 
 /**
  * Extract structured content from newsletter email HTML.
- * Calls the Python extraction microservice.
+ * Calls the Python extraction microservice which also fetches full article content from links.
  */
 export async function extractEmailContent(params: {
   html: string;
   text?: string;
   baseUrl?: string;
+  fetchTimeout?: number;
+  maxFetchContent?: number;
 }): Promise<ExtractionResult> {
-  const { html, text, baseUrl } = params;
+  const { html, text, baseUrl, fetchTimeout = 30, maxFetchContent = 5000 } = params;
 
   try {
     const response = await axios.post<ExtractionResult>(`${EXTRACTOR_URL}/extract`, {
       html,
       text,
       base_url: baseUrl,
+      fetch_timeout: fetchTimeout,
+      max_fetch_content: maxFetchContent,
     }, {
-      timeout: 30000, // 30 second timeout
+      timeout: 120000, // 2 minute timeout to allow for article fetching
       headers: {
         'Content-Type': 'application/json',
       },
