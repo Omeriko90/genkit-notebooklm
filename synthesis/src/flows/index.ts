@@ -18,6 +18,7 @@ const endToEndPodcastInputSchema = z.object({
   sourceTexts: z.array(z.string()),
   jobId: z.string(),
   options: podcastOptionsSchema,
+  domains: z.array(z.string()).optional(),
 });
 
 const endToEndPodcastOutputSchema = z.object({
@@ -74,7 +75,9 @@ export const endToEndPodcastFlow = ai.defineFlow(
       });
 
       const hooksResult = await discussionHooksFlow({
-        summary: summaryResult.combinedSummary, 
+        summary: summaryResult.combinedSummary,
+        format: input.options.format,
+        domains: input.domains,
       });
       metrics.hooks = Date.now() - timer;
       timer = Date.now();

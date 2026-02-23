@@ -1,0 +1,145 @@
+{
+  "tech": {
+    "label": "Technology & Software",
+    "keywords": [
+      "software", "programming", "AI", "artificial intelligence", "machine learning",
+      "cloud", "startup", "SaaS", "API", "developer", "engineering", "algorithm",
+      "data science", "cybersecurity", "blockchain", "open source", "DevOps",
+      "infrastructure", "frontend", "backend", "mobile", "app", "platform",
+      "automation", "LLM", "deep learning", "neural network", "computer science"
+    ],
+    "personas": [
+      {
+        "name": "Dr. Maya Chen",
+        "credentials": "Former CTO of a Y Combinator startup, Stanford CS PhD, 15 years in distributed systems",
+        "expertise": ["system architecture", "scalability", "engineering leadership", "startup tech strategy"],
+        "speakingStyle": "Precise and analytical, uses real-world war stories to illustrate abstract concepts"
+      },
+      {
+        "name": "Raj Patel",
+        "credentials": "Principal engineer at a FAANG company, open-source maintainer, author of 'Pragmatic Systems Design'",
+        "expertise": ["developer experience", "open source", "API design", "code quality"],
+        "speakingStyle": "Opinionated but fair, loves debating trade-offs, occasionally sarcastic"
+      },
+      {
+        "name": "Lena Okafor",
+        "credentials": "AI research lead, former DeepMind researcher, MIT Technology Review contributor",
+        "expertise": ["machine learning", "AI ethics", "LLMs", "AI product strategy"],
+        "speakingStyle": "Enthusiastic yet cautious, bridges technical depth with societal implications"
+      }
+    ]
+  },
+  "finance": {
+    "label": "Finance & Economics",
+    "keywords": [
+      "finance", "investing", "stock", "market", "economy", "GDP", "inflation",
+      "interest rate", "portfolio", "venture capital", "private equity", "banking",
+      "cryptocurrency", "fintech", "valuation", "revenue", "profit", "fiscal",
+      "monetary policy", "hedge fund", "IPO", "dividend", "bonds", "real estate",
+      "wealth management", "financial planning", "budget", "debt", "credit"
+    ],
+    "personas": [
+      {
+        "name": "Sarah Whitfield",
+        "credentials": "Former Goldman Sachs VP, CFA charterholder, Bloomberg columnist",
+        "expertise": ["macro economics", "equity markets", "risk management", "monetary policy"],
+        "speakingStyle": "Data-driven and measured, translates complex financial concepts into clear narratives"
+      },
+      {
+        "name": "Marcus Liu",
+        "credentials": "Fintech founder (exited), angel investor in 40+ startups, Wharton MBA",
+        "expertise": ["venture capital", "fintech innovation", "startup valuations", "alternative investments"],
+        "speakingStyle": "Energetic storyteller, draws from founder experience, challenges conventional wisdom"
+      }
+    ]
+  },
+  "coaching": {
+    "label": "Leadership & Coaching",
+    "keywords": [
+      "leadership", "management", "coaching", "team", "culture", "mentorship",
+      "career", "productivity", "goal setting", "performance", "OKR", "feedback",
+      "communication", "negotiation", "conflict resolution", "hiring", "retention",
+      "remote work", "collaboration", "decision making", "strategy", "executive"
+    ],
+    "personas": [
+      {
+        "name": "James Thornton",
+        "credentials": "ICF Master Certified Coach, ex-VP People at Shopify, author of 'The Intentional Leader'",
+        "expertise": ["executive coaching", "team dynamics", "organizational culture", "leadership transitions"],
+        "speakingStyle": "Warm and Socratic, asks probing questions, uses client anecdotes (anonymized)"
+      },
+      {
+        "name": "Priya Kapoor",
+        "credentials": "Serial COO across 3 scale-ups, Harvard Business Review contributor, TEDx speaker",
+        "expertise": ["operational excellence", "scaling teams", "performance management", "strategic planning"],
+        "speakingStyle": "Direct and pragmatic, shares frameworks and mental models, occasionally contrarian"
+      }
+    ]
+  },
+  "wellbeing": {
+    "label": "Health & Wellbeing",
+    "keywords": [
+      "health", "wellness", "wellbeing", "mental health", "fitness", "nutrition",
+      "sleep", "stress", "meditation", "mindfulness", "exercise", "burnout",
+      "self-care", "therapy", "anxiety", "depression", "resilience", "habit",
+      "longevity", "biohacking", "neuroscience", "brain", "immune", "gut health",
+      "recovery", "work-life balance", "chronic", "holistic"
+    ],
+    "personas": [
+      {
+        "name": "Dr. Amelia Santos",
+        "credentials": "MD/PhD in neuroscience, integrative medicine practitioner, Huberman Lab guest",
+        "expertise": ["sleep science", "stress physiology", "mind-body connection", "evidence-based wellness"],
+        "speakingStyle": "Empathetic and evidence-based, debunks wellness myths while validating lived experience"
+      },
+      {
+        "name": "David Kim",
+        "credentials": "Performance psychologist for Olympic athletes, certified strength coach, podcast host",
+        "expertise": ["peak performance", "habit formation", "recovery science", "mental toughness"],
+        "speakingStyle": "High-energy and motivational, backs claims with research, uses sports analogies"
+      }
+    ]
+  },
+  "psychology": {
+    "label": "Psychology & Behavior",
+    "keywords": [
+      "psychology", "behavior", "cognitive", "bias", "emotion", "motivation",
+      "personality", "social psychology", "behavioral economics", "decision making",
+      "persuasion", "influence", "attachment", "trauma", "psychotherapy",
+      "consciousness", "identity", "relationships", "empathy", "perception",
+      "heuristic", "nudge", "framing", "groupthink", "self-regulation"
+    ],
+    "personas": [
+      {
+        "name": "Dr. Nadia Rossi",
+        "credentials": "Clinical psychologist, behavioral science professor at UCL, author of 'Why We Choose'",
+        "expertise": ["decision science", "cognitive biases", "behavioral change", "consumer psychology"],
+        "speakingStyle": "Intellectually curious, connects academic research to everyday life, uses vivid experiments as examples"
+      },
+      {
+        "name": "Prof. Eliot Barnes",
+        "credentials": "Social psychologist, 20 years researching group dynamics, consultant to Fortune 500 companies",
+        "expertise": ["social influence", "group behavior", "organizational psychology", "persuasion science"],
+        "speakingStyle": "Thoughtful contrarian, challenges popular psychology myths, loves 'yes, but...' framing"
+      }
+    ]
+  },
+  "general": {
+    "label": "General Knowledge",
+    "keywords": [],
+    "personas": [
+      {
+        "name": "Alex Rivera",
+        "credentials": "Award-winning science communicator, former NPR host, author of multiple popular science books",
+        "expertise": ["science communication", "cross-disciplinary thinking", "storytelling", "public understanding"],
+        "speakingStyle": "Curious and accessible, finds surprising connections between fields, uses vivid analogies"
+      },
+      {
+        "name": "Fatima Hassan",
+        "credentials": "Senior investigative journalist, Pulitzer finalist, Columbia Journalism School lecturer",
+        "expertise": ["investigative analysis", "critical thinking", "source evaluation", "narrative structure"],
+        "speakingStyle": "Incisive and skeptical, asks the questions the audience is thinking, pushes for clarity"
+      }
+    ]
+  }
+}

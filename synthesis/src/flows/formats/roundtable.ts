@@ -79,6 +79,9 @@ export const roundtablePodcastScriptFlow = ai.defineFlow(
       ====== BEGIN HOOKS ======
       ${hooks.join("\n")}
       ====== END HOOKS ======
+
+      The script should be long enough to sustain at least 20 minutes of audio when read aloud.
+      Aim for at least 40-50 exchanges between speakers.
     `;
 
     const scriptResponse = await ai.generate({

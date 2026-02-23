@@ -35,6 +35,8 @@ export interface SynthesisRequest {
     input: string | string[]; // Supports multiple sources (PDFs, URLs, etc.)
     /** The desired output formats */
     output: OutputConfig[]; // Supports multiple output types in a single request
+    /** Optional domain override for persona selection (e.g. ["tech", "finance"]) */
+    domains?: string[];
   }
 
 export interface SynthesisResult {

@@ -164,8 +164,28 @@ async def fetch_with_httpx(
             final_url = str(response.url)
             
             html = response.text
+
+            # Detect Cloudflare/bot challenge pages that return 200
+            challenge_signatures = [
+                "Just a moment",
+                "Verifying you are human",
+                "checking your browser",
+                "challenge-platform",
+                "cf-challenge",
+                "security service to protect",
+            ]
+            is_challenge = any(sig in html for sig in challenge_signatures)
+
+            if is_challenge:
+                return FetchedArticle(
+                    url=url,
+                    final_url=final_url if final_url != url else None,
+                    error="Bot challenge page detected",
+                    fetch_method="httpx"
+                )
+
             content, title = extract_content_and_title(html, max_content_length)
-            
+
             if content:
                 return FetchedArticle(
                     url=url,
@@ -352,7 +372,7 @@ async def fetch_with_playwright(
                 html = await page.content()
                 
                 # Check if we're still on a challenge page
-                if "Verifying you are human" in html or "checking your browser" in html.lower():
+                if "Verifying you are human" in html or "checking your browser" in html.lower() or "Just a moment" in html:
                     continue  # Still on challenge page, wait more
                 
                 # Check if we got redirected to actual content
@@ -453,8 +473,8 @@ async def fetch_article_content(
             except (IndexError, ValueError):
                 pass
         
-        # Also try browser if content extraction failed
-        if "Could not extract content" in (result.error or ""):
+        # Also try browser if content extraction failed or bot challenge detected
+        if "Could not extract content" in (result.error or "") or "Bot challenge" in (result.error or ""):
             should_fallback = True
         
         if should_fallback:

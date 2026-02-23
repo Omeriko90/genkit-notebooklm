@@ -9,12 +9,14 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "composite": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/**/*.json"
   ],
   "exclude": [
     "node_modules",
