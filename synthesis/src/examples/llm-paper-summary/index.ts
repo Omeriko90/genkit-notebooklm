@@ -36,8 +36,6 @@ async function main() {
     intervieweeName: "Dr. James Wilson",
     topic: "Latest Breakthroughs in AI Research",
     maxQuestions: 8,
-    bucketName: "xxxx.firebasestorage.app",
-    transcriptStorage: "transcripts",
     audioStorage: "audio"
   }; 
   const req: SynthesisRequest = {

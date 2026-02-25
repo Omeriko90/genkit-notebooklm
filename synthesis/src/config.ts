@@ -7,12 +7,10 @@ import fs from 'fs';
 
 dotenv.config();
 
-export const USE_CLOUD_STORAGE = true;
 export const USE_FIRESTORE = true;
 
 let db: admin.firestore.Firestore | null;
 let firebaseAdmin: admin.app.App | null;
-let storage: admin.storage.Storage | null;
 let authConfig: admin.AppOptions;
 
 if (process.env.NODE_ENV === 'production') {
@@ -26,19 +24,13 @@ if (process.env.NODE_ENV === 'production') {
   };
 }
 
-if (USE_CLOUD_STORAGE || USE_FIRESTORE) {
+if (USE_FIRESTORE) {
   if (!admin.apps.length) {
     admin.initializeApp(authConfig);
   }
   firebaseAdmin = admin.app();
 } else {
   firebaseAdmin = null;
-}
-
-if (USE_CLOUD_STORAGE && !!firebaseAdmin) {
-  storage = firebaseAdmin.storage();
-} else {
-  storage = null;
 }
 
 if (USE_FIRESTORE && !!firebaseAdmin) {
@@ -61,7 +53,7 @@ if (process.env.NODE_ENV === 'production') {
 
 export const JOBS_COLLECTION = "jobs";
 
-export { firebaseAdmin, storage, db, tts };
+export { firebaseAdmin, db, tts };
 
 export const ai = genkit({
   plugins: [googleAI()],

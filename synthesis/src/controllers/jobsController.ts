@@ -444,7 +444,7 @@ export const jobsController = {
             title: a.title,
             text: a.text?.substring(0, 200) + '...',
             link: a.link,
-            fetched_content: a.fetched_content?.substring(0, 300) + (a.fetched_content ? '...' : null),
+            fetched_content: a.fetched_content ? a.fetched_content.substring(0, 300) + '...' : undefined,
             fetched_title: a.fetched_title,
             fetch_method: a.fetch_method,
             fetch_error: a.fetch_error,

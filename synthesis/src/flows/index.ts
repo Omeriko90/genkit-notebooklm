@@ -1,5 +1,5 @@
 import { z } from "genkit";
-import { ai, db, JOBS_COLLECTION, USE_CLOUD_STORAGE, USE_FIRESTORE } from "../config";
+import { ai, db, JOBS_COLLECTION, USE_FIRESTORE } from "../config";
 import { podcastOptionsSchema } from "../schemas/podcast";
 import { summarizeSourcesFlow } from "./summarizeSource";
 import { synthesizeAudioFlow } from "./synthesizeAudio";

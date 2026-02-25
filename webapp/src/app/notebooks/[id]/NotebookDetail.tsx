@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, bucketName } from "../../firebase";
+import { db } from "../../firebase";
 import { doc, onSnapshot, collection, addDoc, getDocs } from "firebase/firestore";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import axios from "axios";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+
 
 
 interface NotebookDetailClientProps {
@@ -131,8 +131,6 @@ export function NotebookDetailClient({ id }: NotebookDetailClientProps) {
           }
         ],
         audioStorage: "audio",
-        transcriptStorage: "transcript",
-        bucketName,
       }
       const synthesisRequest = {
         input: sources,
@@ -143,13 +141,7 @@ export function NotebookDetailClient({ id }: NotebookDetailClientProps) {
       const data = response.data;
       
       if (data.status === 'success' && data.result.podcast.storageUrl) {
-        // Get a reference to the storage location
-        const storage = getStorage();
-        const audioRef = ref(storage, data.result.podcast.storageUrl);
-        
-        // Get the download URL
-        const url = await getDownloadURL(audioRef);
-        setAudioUrl(url);
+        setAudioUrl(data.result.podcast.storageUrl);
       }
     } catch (error) {
       console.error("Failed to generate podcast:", error);
