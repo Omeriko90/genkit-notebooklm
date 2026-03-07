@@ -43,8 +43,8 @@ interface UserResult {
 // Constants
 // ============================================================================
 
-const DEFAULT_PODCAST_OPTIONS: PodcastOptions = {
-  format: 'interview',
+const DEFAULT_PODCAST_OPTIONS = {
+  format: 'interview' as const,
   speakers: [
     { name: 'Host', voiceId: 'en-US-Studio-Q' },
     { name: 'Guest', voiceId: 'en-US-Studio-O' },
@@ -265,9 +265,11 @@ function buildPodcastInput(extractedEmails: ExtractedEmail[]): string {
 
 async function generateNewsletterPodcast(
   combinedText: string,
-  options: PodcastOptions = DEFAULT_PODCAST_OPTIONS
+  userId: string,
+  podcastName: string,
+  options: PodcastOptions = { ...DEFAULT_PODCAST_OPTIONS, format: 'interview' } as PodcastOptions
 ): Promise<PodcastResult> {
-  return createPodcastFromText(combinedText, options);
+  return createPodcastFromText(combinedText, { ...options, userId, podcastName });
 }
 
 async function saveNewsletterHistory(
@@ -321,7 +323,7 @@ async function processNewsletter(
     const combinedText = buildPodcastInput(extractedEmails);
 
     // Step 4: Generate podcast
-    const podcast = await generateNewsletterPodcast(combinedText);
+    const podcast = await generateNewsletterPodcast(combinedText, newsletter.userId, newsletter.id);
 
     // Step 5: Save history
     const historyId = await saveNewsletterHistory(newsletter.id, emails, podcast);
@@ -420,7 +422,7 @@ export const jobsController = {
       let localAudioPath = null;
       if (generatePodcast) {
         console.log('Generating podcast...');
-        podcast = await generateNewsletterPodcast(combinedText);
+        podcast = await generateNewsletterPodcast(combinedText, user.id, 'test-podcast');
         console.log('Podcast generated:', podcast);
 
         // Return local file path

@@ -60,8 +60,18 @@ export const synthesizeAudioFlow = ai.defineFlow(
   async (inputValues: z.infer<typeof synthesizeAudioInputSchema>) => {
     const { script, speakers, moderator, options } = inputValues;
 
-    const outputFileName = `podcast_audio_${options.title || uuidv4()}.mp3`;
-    const storagePath = `${options.audioStorage}/${outputFileName}`;
+    const podcastName = options.podcastName || options.title || uuidv4();
+    const timestamp = Date.now();
+    const outputFileName = `${podcastName}-${timestamp}.mp3`;
+
+    // Build storage path: {userId}/{podcastName}/{podcastName}-{timestamp}.mp3
+    const pathParts = [
+      options.userId,
+      podcastName,
+      outputFileName,
+    ].filter(Boolean);
+    const storagePath = pathParts.join('/');
+
     const storageUrl = await synthesizePodcastAudio(script, outputFileName, storagePath, speakers, moderator);
     return { audioFileName: outputFileName, storageUrl };
   }
