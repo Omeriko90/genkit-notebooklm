@@ -8,10 +8,10 @@ export const speakerSchema = z.object({
 
 export const basePodcastOptionsSchema = z.object({
   speakers: z.array(speakerSchema),
-  transcriptStorage: z.string().optional(),
   audioStorage: z.string().optional(),
   title: z.string().optional(),
-  bucketName: z.string().optional(),
+  userId: z.string().optional(),
+  podcastName: z.string().optional(),
 });
 
 export const moderatorSchema = z.object({

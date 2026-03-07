@@ -1,10 +1,8 @@
 import { z } from "genkit";
-import { ai, storage } from "../config";
-import { uploadFileToStorage } from "../util";
+import { ai } from "../config";
 import { roundtablePodcastScriptFlow } from "./formats/roundtable";
 import { debatePodcastScriptFlow } from "./formats/debate";
 import { interviewPodcastScriptFlow } from "./formats/interview";
-import fs from "fs/promises";
 import { podcastOptionsSchema } from "../schemas/podcast";
 
 export const generateScriptFlow = ai.defineFlow(
@@ -55,26 +53,8 @@ export const generateScriptFlow = ai.defineFlow(
       throw new Error("Script generation failed - no script content returned");
     }
 
-    let storageUrl;
-    if (storage) {
-      // Upload transcript to storage
-      const transcriptFileName = `transcript_${Date.now()}.json`;
-      const storagePath = `${input.options.transcriptStorage}/${transcriptFileName}`;
-      const bucket = storage.bucket(input.options.bucketName);
-      const transcriptContent = JSON.stringify(scriptResult.script, null, 2);
-      await fs.writeFile(transcriptFileName, transcriptContent);
-      
-      storageUrl = await uploadFileToStorage(bucket, transcriptFileName, storagePath);
-      
-      // Cleanup temp file
-      await fs.unlink(transcriptFileName).catch(err =>
-        console.warn("Could not remove transcript file:", transcriptFileName, err)
-      );
-    }
-
     return {
       script: scriptResult.script,
-      storageUrl
     };
   }
 );
