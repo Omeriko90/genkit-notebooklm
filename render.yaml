@@ -38,3 +38,5 @@ services:
         sync: false
       - key: BROWSERLESS_API_KEY
         sync: false
+      - key: API_TOKEN
+        sync: false
