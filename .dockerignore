@@ -1,0 +1,10 @@
+node_modules
+__pycache__
+.env
+credentials.json
+webapp/
+.git
+*.mp3
+extractor/venv
+synthesis/dist
+synthesis/node_modules

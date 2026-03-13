@@ -13,7 +13,12 @@ let db: admin.firestore.Firestore | null;
 let firebaseAdmin: admin.app.App | null;
 let authConfig: admin.AppOptions;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+  authConfig = {
+    credential: admin.credential.cert(credentials)
+  };
+} else if (process.env.NODE_ENV === 'production') {
   authConfig = {
     credential: admin.credential.applicationDefault()
   };
@@ -42,7 +47,12 @@ if (USE_FIRESTORE && !!firebaseAdmin) {
 let ttsCredentials;
 let tts: TextToSpeechClient;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  ttsCredentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+  tts = new textToSpeech.TextToSpeechClient({
+    credentials: ttsCredentials
+  });
+} else if (process.env.NODE_ENV === 'production') {
   tts = new textToSpeech.TextToSpeechClient();
 } else {
   ttsCredentials = JSON.parse(fs.readFileSync('credentials.json', 'utf-8'));
