@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:22-slim
 
 WORKDIR /app
 
@@ -6,7 +6,8 @@ WORKDIR /app
 COPY . .
 
 # Install and build
-RUN npm install
+RUN npm install --ignore-scripts
+RUN npx prisma generate
 RUN npm run build
 
 # Cloud Run will use PORT environment variable

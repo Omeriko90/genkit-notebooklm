@@ -9,7 +9,7 @@ yarn.lock
 # Build outputs
 dist/
 build/
-lib/
+/lib/
 
 # Environment variables
 .env
