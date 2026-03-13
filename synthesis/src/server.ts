@@ -6,6 +6,7 @@ import { synthesisRouter } from './routes/synthesis';
 import { errorHandler } from './middleware/errorHandler';
 import { userRouter } from './routes/user';
 import { jobsRouter } from './routes/jobs';
+import { isExtractorHealthy } from './integrations/extractor';
 
 dotenv.config();
 
@@ -23,6 +24,15 @@ app.use('/api/users', userRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/health', (req, res) => {
   res.json({ message: 'OK' });
+});
+
+app.get('/health/full', async (req, res) => {
+  const extractorHealthy = await isExtractorHealthy();
+  const status = extractorHealthy ? 200 : 503;
+  res.status(status).json({
+    synthesis: 'OK',
+    extractor: extractorHealthy ? 'OK' : 'unreachable',
+  });
 });
 
 // Error handling
