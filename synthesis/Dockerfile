@@ -12,4 +12,4 @@ RUN npm run build
 # Cloud Run will use PORT environment variable
 EXPOSE 8080
 
-CMD [ "npm", "start" ] 
+CMD npx prisma migrate deploy && npm start 

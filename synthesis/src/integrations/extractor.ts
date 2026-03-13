@@ -4,8 +4,19 @@
  */
 
 import axios from 'axios';
+import { GoogleAuth } from 'google-auth-library';
 
 const EXTRACTOR_URL = process.env.EXTRACTOR_URL || 'http://localhost:8081';
+const isCloudRun = !!process.env.K_SERVICE;
+
+const auth = new GoogleAuth();
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  if (!isCloudRun) return {};
+  const client = await auth.getIdTokenClient(EXTRACTOR_URL);
+  const headers = await client.getRequestHeaders();
+  return headers;
+}
 
 export interface ExtractedArticle {
   text: string;
@@ -41,6 +52,7 @@ export async function extractEmailContent(params: {
   const { html, text, baseUrl, fetchTimeout = 30, maxFetchContent = 5000 } = params;
 
   try {
+    const authHeaders = await getAuthHeaders();
     const response = await axios.post<ExtractionResult>(`${EXTRACTOR_URL}/extract`, {
       html,
       text,
@@ -51,6 +63,7 @@ export async function extractEmailContent(params: {
       timeout: 120000, // 2 minute timeout to allow for article fetching
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
       },
     });
 
@@ -71,7 +84,11 @@ export async function extractEmailContent(params: {
  */
 export async function isExtractorHealthy(): Promise<boolean> {
   try {
-    const response = await axios.get(`${EXTRACTOR_URL}/health`, { timeout: 5000 });
+    const authHeaders = await getAuthHeaders();
+    const response = await axios.get(`${EXTRACTOR_URL}/health`, {
+      timeout: 5000,
+      headers: authHeaders,
+    });
     return response.data?.status === 'healthy';
   } catch {
     return false;
