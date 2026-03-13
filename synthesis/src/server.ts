@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { synthesisRouter } from './routes/synthesis';
 import { errorHandler } from './middleware/errorHandler';
-import { userRouter } from './routes/user';
 import { jobsRouter } from './routes/jobs';
 import { isExtractorHealthy } from './integrations/extractor';
 
