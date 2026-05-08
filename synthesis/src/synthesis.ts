@@ -24,12 +24,11 @@ export async function synthesize(request: SynthesisRequest): Promise<SynthesisRe
  * Convenience helper for jobs/automation to create a podcast directly from text inputs.
  * Uses the same underlying flow as the `synthesize()` API.
  */
-export async function createPodcastFromText(input: string | string[], options: PodcastOptions, domains?: string[]): Promise<PodcastResult> {
-  return generatePodcast(input, options, domains);
+export async function createPodcastFromText(input: string | string[], options: PodcastOptions, domains?: string[], narrativeInstructions?: string, tone?: string): Promise<PodcastResult> {
+  return generatePodcast(input, options, domains, narrativeInstructions, tone);
 }
 
-async function generatePodcast(input: string | string[], options: PodcastOptions, domains?: string[]): Promise<PodcastResult> {
-  // Generate a unique job ID for tracking this podcast generation
+async function generatePodcast(input: string | string[], options: PodcastOptions, domains?: string[], narrativeInstructions?: string, tone?: string): Promise<PodcastResult> {
   const jobId = `podcast_${uuidv4()}`;
 
   // Convert input to array if single string
@@ -45,12 +44,13 @@ async function generatePodcast(input: string | string[], options: PodcastOptions
       }
     }
   }
-  // Call the end-to-end podcast generation flow
   const result = await endToEndPodcastFlow({
     sourceTexts,
     jobId,
     options,
     domains,
+    narrativeInstructions,
+    tone,
   });
 
   return {

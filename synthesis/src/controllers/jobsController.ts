@@ -82,6 +82,9 @@ function startOfUtcDay(d: Date): Date {
 function addInterval(from: Date, interval: Interval): Date {
   const next = new Date(from.getTime());
   switch (interval) {
+    case Interval.DAILY:
+      next.setUTCDate(next.getUTCDate() + 1);
+      return next;
     case Interval.WEEKLY:
       next.setUTCDate(next.getUTCDate() + 7);
       return next;
@@ -267,9 +270,17 @@ async function generateNewsletterPodcast(
   combinedText: string,
   userId: string,
   podcastName: string,
-  options: PodcastOptions = { ...DEFAULT_PODCAST_OPTIONS, format: 'interview' } as PodcastOptions
+  options: PodcastOptions = { ...DEFAULT_PODCAST_OPTIONS, format: 'interview' } as PodcastOptions,
+  narrativeInstructions?: string | null,
+  tone?: string | null,
 ): Promise<PodcastResult> {
-  return createPodcastFromText(combinedText, { ...options, userId, podcastName });
+  return createPodcastFromText(
+    combinedText,
+    { ...options, userId, podcastName },
+    undefined,
+    narrativeInstructions ?? undefined,
+    tone ?? undefined,
+  );
 }
 
 async function saveNewsletterHistory(
@@ -323,7 +334,14 @@ async function processNewsletter(
     const combinedText = buildPodcastInput(extractedEmails);
 
     // Step 4: Generate podcast
-    const podcast = await generateNewsletterPodcast(combinedText, newsletter.userId, newsletter.id);
+    const podcast = await generateNewsletterPodcast(
+      combinedText,
+      newsletter.userId,
+      newsletter.id,
+      undefined,
+      newsletter.narrativeInstructions,
+      newsletter.tone,
+    );
 
     // Step 5: Save history
     const historyId = await saveNewsletterHistory(newsletter.id, emails, podcast);

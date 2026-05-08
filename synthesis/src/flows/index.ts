@@ -19,6 +19,8 @@ const endToEndPodcastInputSchema = z.object({
   jobId: z.string(),
   options: podcastOptionsSchema,
   domains: z.array(z.string()).optional(),
+  narrativeInstructions: z.string().optional(),
+  tone: z.string().optional(),
 });
 
 const endToEndPodcastOutputSchema = z.object({
@@ -90,6 +92,8 @@ export const endToEndPodcastFlow = ai.defineFlow(
         summary: summaryResult.combinedSummary,
         hooks: hooksResult.hooks,
         options: input.options,
+        narrativeInstructions: input.narrativeInstructions,
+        tone: input.tone,
       });
       metrics.script = Date.now() - timer;
       timer = Date.now();

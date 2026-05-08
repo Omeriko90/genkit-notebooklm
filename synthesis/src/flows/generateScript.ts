@@ -11,7 +11,9 @@ export const generateScriptFlow = ai.defineFlow(
     inputSchema: z.object({
       summary: z.string(),
       hooks: z.array(z.string()),
-      options: podcastOptionsSchema
+      options: podcastOptionsSchema,
+      narrativeInstructions: z.string().optional(),
+      tone: z.string().optional(),
     }),
     outputSchema: z.object({
       script: z.array(z.object({
@@ -22,27 +24,34 @@ export const generateScriptFlow = ai.defineFlow(
     })
   },
   async (input) => {
+    const { summary, hooks, options, narrativeInstructions, tone } = input;
     let scriptResult;
-    switch (input.options.format) {
+    switch (options.format) {
       case "roundtable":
         scriptResult = await roundtablePodcastScriptFlow({
-          summary: input.summary,
-          options: input.options,
-          hooks: input.hooks,
+          summary,
+          options,
+          hooks,
+          narrativeInstructions,
+          tone,
         });
         break;
       case "debate":
         scriptResult = await debatePodcastScriptFlow({
-          summary: input.summary,
-          options: input.options,
-          hooks: input.hooks,
+          summary,
+          options,
+          hooks,
+          narrativeInstructions,
+          tone,
         });
         break;
       case "interview":
         scriptResult = await interviewPodcastScriptFlow({
-          summary: input.summary,
-          options: input.options,
-          hooks: input.hooks,
+          summary,
+          options,
+          hooks,
+          narrativeInstructions,
+          tone,
         });
         break;
       default:
