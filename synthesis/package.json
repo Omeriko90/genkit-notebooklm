@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
+    "postinstall": "prisma generate",
     "prepare": "npm run build",
     "start": "node dist/server.js",
     "dev": "node --enable-source-maps -r ts-node/register/transpile-only src/server.ts",

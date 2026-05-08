@@ -338,7 +338,7 @@ async function processNewsletter(
       combinedText,
       newsletter.userId,
       newsletter.id,
-      undefined,
+      { ...DEFAULT_PODCAST_OPTIONS, format: 'interview' } as PodcastOptions,
       newsletter.narrativeInstructions,
       newsletter.tone,
     );
