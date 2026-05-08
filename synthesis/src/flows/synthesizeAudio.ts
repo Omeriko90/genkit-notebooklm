@@ -60,7 +60,8 @@ export const synthesizeAudioFlow = ai.defineFlow(
   async (inputValues: z.infer<typeof synthesizeAudioInputSchema>) => {
     const { script, speakers, moderator, options } = inputValues;
 
-    const podcastName = options.podcastName || options.title || uuidv4();
+    const rawName = options.podcastName || options.title || uuidv4();
+    const podcastName = rawName.replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 100);
     const timestamp = Date.now();
     const outputFileName = `${podcastName}-${timestamp}.mp3`;
 

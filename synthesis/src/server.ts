@@ -14,7 +14,14 @@ const port = process.env.PORT || 8080;
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+  : [];
+app.use(cors({
+  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+}));
+
 app.use(express.json({ limit: '50mb' }));
 
 // Routes

@@ -2,42 +2,72 @@ import axios from "axios";
 import pdfParse from "pdf-parse";
 import path from "path";
 import mammoth from "mammoth"; // For .docx
+import { lookup } from "dns/promises";
 
-/**
- * This function retrieves text content from a given URL. It supports regular URLs.
- *
- * 1. Fetches the file from the URL.
- *    - Converts the response to a buffer.
- *
- * 2. Determines the content type and file extension to decide how to process the file:
- *    - For PDF files (content type includes "pdf" or extension is ".pdf"):
- *      - Uses pdf-parse to extract text content from the PDF buffer.
- *    - For plain text files (content type includes "plain" or extension is ".txt"):
- *      - Converts the buffer to a UTF-8 string.
- *    - For Word documents (content type includes "word" or extension is ".docx"):
- *      - Uses mammoth to extract raw text from the Word document buffer.
- *    - For Markdown files (extension is ".md"):
- *      - Converts the buffer to a UTF-8 string.
- *
- * 3. Returns an object containing:
- *    - isText: A boolean indicating whether the file was successfully processed as text.
- *    - content: The extracted text content.
- *
- * If any errors occur during the process, they are logged and re-thrown.
- */
+const BLOCKED_HOSTS = new Set([
+  '169.254.169.254',
+  'metadata.google.internal',
+  'metadata.internal',
+  'instance-data',
+]);
+
+const PRIVATE_IP_PATTERNS = [
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2[0-9]|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^0\./,
+  /^::1$/,
+  /^f[cd]/i,
+];
+
+function isPrivateIp(ip: string): boolean {
+  return PRIVATE_IP_PATTERNS.some(r => r.test(ip));
+}
+
+async function validateSafeUrl(urlString: string): Promise<void> {
+  let parsed: URL;
+  try {
+    parsed = new URL(urlString);
+  } catch {
+    throw new Error('Invalid URL');
+  }
+
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Only HTTPS URLs are allowed');
+  }
+
+  if (BLOCKED_HOSTS.has(parsed.hostname)) {
+    throw new Error('URL not allowed');
+  }
+
+  const addresses = await lookup(parsed.hostname, { all: true }).catch(() => {
+    throw new Error('Unable to resolve URL hostname');
+  });
+
+  for (const { address } of addresses) {
+    if (isPrivateIp(address)) {
+      throw new Error('URL resolves to a private address');
+    }
+  }
+}
+
 export async function getTextFromUrl(url: string): Promise<{ isText: boolean, content: string }> {
   try {
+    await validateSafeUrl(url);
+
     let buffer: Buffer;
     let contentType = "";
 
-    // Handle regular URL
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
+      maxRedirects: 5,
       headers: {
         'Accept': '*/*'
       }
     });
-    contentType = response.headers['content-type'] || "";
+    contentType = String(response.headers['content-type'] || "");
     buffer = Buffer.from(response.data);
 
     const extension = path.extname(url).toLowerCase();

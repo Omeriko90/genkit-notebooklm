@@ -4,7 +4,7 @@ import crypto from 'crypto';
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   const apiToken = process.env.API_TOKEN;
 
-  if (!apiToken) {
+  if (!apiToken || apiToken.length === 0) {
     console.error('API_TOKEN environment variable is not set');
     res.status(500).json({ status: 'error', message: 'Server configuration error' });
     return;
