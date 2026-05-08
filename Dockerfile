@@ -1,9 +1,10 @@
 # Stage 1: Build Synthesis (Node.js)
-FROM node:18-slim AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app/synthesis
 COPY synthesis/package.json synthesis/package-lock.json* ./
-RUN npm ci
+COPY synthesis/prisma ./prisma
+RUN npm ci --ignore-scripts
 COPY synthesis/ ./
 RUN npx prisma generate
 RUN npm run build
@@ -15,7 +16,7 @@ FROM python:3.11-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
