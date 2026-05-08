@@ -86,7 +86,7 @@ export async function isExtractorHealthy(): Promise<boolean> {
   try {
     const authHeaders = await getAuthHeaders();
     const response = await axios.get(`${EXTRACTOR_URL}/health`, {
-      timeout: 5000,
+      timeout: 15000,
       headers: authHeaders,
     });
     return response.data?.status === 'healthy';
