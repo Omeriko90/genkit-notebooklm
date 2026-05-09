@@ -9,6 +9,7 @@ const finalPodcastScriptInputSchema = z.object({
   options: interviewPodcastOptionsSchema,
   narrativeInstructions: z.string().optional(),
   tone: z.string().optional(),
+  language: z.string().optional(),
 });
 
 const finalPodcastScriptOutputSchema = z.object({
@@ -27,7 +28,7 @@ export const interviewPodcastScriptFlow = ai.defineFlow(
     outputSchema: finalPodcastScriptOutputSchema,
   },
   async (inputValues: z.infer<typeof finalPodcastScriptInputSchema>) => {
-    const { summary, hooks, options, narrativeInstructions, tone } = inputValues;
+    const { summary, hooks, options, narrativeInstructions, tone, language } = inputValues;
 
     const speakerIntros = options.speakers.map((speaker: { name: string; background?: string }) => 
       speaker.background ? 
@@ -61,6 +62,7 @@ export const interviewPodcastScriptFlow = ai.defineFlow(
         `Include approximately ${options.maxQuestions} main questions.` :
         'Include approximately 10 main questions in the interview.'}
 
+      ${language ? `Language: Write the entire script in ${language}.` : ''}
       ${tone ? `Tone: Write the entire script in a ${tone} tone.` : ''}
       ${narrativeInstructions ? `Additional narrative instructions: ${narrativeInstructions}` : ''}
 

@@ -92,19 +92,32 @@ export async function gmailListMessageIds(params: {
   q: string;
   maxResults?: number;
 }): Promise<GmailListResult> {
-  const { credentials, q, maxResults = 10 } = params;
+  const { credentials, q, maxResults } = params;
 
   const { gmail, refreshedCredentials } = await getGmailClient(credentials);
-  const res = await gmail.users.messages.list({
-    userId: 'me',
-    q,
-    maxResults,
-  });
 
-  return {
-    messageIds: (res.data.messages ?? []).map((m) => m.id!).filter(Boolean),
-    refreshedCredentials,
-  };
+  const messageIds: string[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const res = await gmail.users.messages.list({
+      userId: 'me',
+      q,
+      maxResults: 250,
+      ...(pageToken ? { pageToken } : {}),
+    });
+
+    const ids = (res.data.messages ?? []).map((m) => m.id!).filter(Boolean);
+    messageIds.push(...ids);
+
+    pageToken = res.data.nextPageToken ?? undefined;
+
+    if (maxResults !== undefined && messageIds.length >= maxResults) {
+      return { messageIds: messageIds.slice(0, maxResults), refreshedCredentials };
+    }
+  } while (pageToken);
+
+  return { messageIds, refreshedCredentials };
 }
 
 function base64UrlDecode(input: string): string {

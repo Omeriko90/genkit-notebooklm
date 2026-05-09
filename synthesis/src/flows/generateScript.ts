@@ -25,6 +25,7 @@ export const generateScriptFlow = ai.defineFlow(
   },
   async (input) => {
     const { summary, hooks, options, narrativeInstructions, tone } = input;
+    const language = options.language;
     let scriptResult;
     switch (options.format) {
       case "roundtable":
@@ -34,6 +35,7 @@ export const generateScriptFlow = ai.defineFlow(
           hooks,
           narrativeInstructions,
           tone,
+          language,
         });
         break;
       case "debate":
@@ -43,6 +45,7 @@ export const generateScriptFlow = ai.defineFlow(
           hooks,
           narrativeInstructions,
           tone,
+          language,
         });
         break;
       case "interview":
@@ -52,6 +55,7 @@ export const generateScriptFlow = ai.defineFlow(
           hooks,
           narrativeInstructions,
           tone,
+          language,
         });
         break;
       default:

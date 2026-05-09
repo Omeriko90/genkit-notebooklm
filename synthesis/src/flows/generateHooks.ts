@@ -6,6 +6,7 @@ const discussionHooksInputSchema = z.object({
   summary: z.string(),
   domains: z.array(z.string()).optional(),
   format: z.enum(["roundtable", "debate", "interview"]).optional(),
+  language: z.string().optional(),
 });
 
 const discussionHooksOutputSchema = z.object({
@@ -41,7 +42,7 @@ export const discussionHooksFlow = ai.defineFlow(
     outputSchema: discussionHooksOutputSchema,
   },
   async (input: z.infer<typeof discussionHooksInputSchema>) => {
-    const { summary, format } = input;
+    const { summary, format, language } = input;
 
     const domainKeys = input.domains && input.domains.length > 0
       ? input.domains
@@ -72,7 +73,9 @@ Requirements:
 
 Format guidance: ${formatInstruction}
 
-Return each hook as a string in the hooks array. Also return the domain keys used in detectedDomains.`;
+Return each hook as a string in the hooks array. Also return the domain keys used in detectedDomains.
+
+${language ? `Write your entire response in ${language}.` : ''}`;
 
     const hookResponse = await ai.generate({
       prompt,

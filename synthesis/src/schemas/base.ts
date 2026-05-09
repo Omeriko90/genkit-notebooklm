@@ -12,6 +12,7 @@ export const basePodcastOptionsSchema = z.object({
   title: z.string().optional(),
   userId: z.string().optional(),
   podcastName: z.string().optional(),
+  language: z.string().optional(), // e.g. "Hebrew", "English", "Spanish"
 });
 
 export const moderatorSchema = z.object({

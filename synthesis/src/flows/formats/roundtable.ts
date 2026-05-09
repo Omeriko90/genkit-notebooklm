@@ -8,6 +8,7 @@ const finalPodcastScriptInputSchema = z.object({
   options: roundtablePodcastOptionsSchema,
   narrativeInstructions: z.string().optional(),
   tone: z.string().optional(),
+  language: z.string().optional(),
 });
 
 const finalPodcastScriptOutputSchema = z.object({
@@ -26,7 +27,7 @@ export const roundtablePodcastScriptFlow = ai.defineFlow(
     outputSchema: finalPodcastScriptOutputSchema,
   },
   async (inputValues: z.infer<typeof finalPodcastScriptInputSchema>) => {
-    const { summary, hooks, options, narrativeInstructions, tone } = inputValues;
+    const { summary, hooks, options, narrativeInstructions, tone, language } = inputValues;
     const discussionStyleDescriptions: Record<string, string> = {
       expert_panel: "In-depth discussion with domain experts",
       founders_chat: "Candid discussions between startup founders",
@@ -72,6 +73,7 @@ export const roundtablePodcastScriptFlow = ai.defineFlow(
         }.` :
         'Allow the conversation to flow naturally between speakers. This is a discussion with no moderation, and speakers naturally interrupt each other.'}
 
+      ${language ? `Language: Write the entire script in ${language}.` : ''}
       ${tone ? `Tone: Write the entire script in a ${tone} tone.` : ''}
       ${narrativeInstructions ? `Additional narrative instructions: ${narrativeInstructions}` : ''}
 

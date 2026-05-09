@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
-import { Provider, Interval, EmailAccount, Newsletter } from '@prisma/client';
+import { Provider, Interval, EmailAccount, Newsletter, Prisma } from '@prisma/client';
 import { buildGmailQuery, gmailGetMessageText, gmailListMessageIds, GmailCredentials, RefreshedCredentials, GmailMessageContent } from '../integrations/gmail';
 import { extractEmailContent, ExtractedArticle } from '../integrations/extractor';
 import { createPodcastFromText } from '../synthesis';
 import { PodcastOptions, PodcastResult } from '../schemas/podcast';
+import { speakerSchema } from '../schemas/base';
+import { z } from 'zod';
 import { decrypt, encrypt } from '../lib/encryption';
 
 // ============================================================================
@@ -160,7 +162,6 @@ async function fetchNewsletterEmails(
   const listResult = await gmailListMessageIds({
     credentials: credentialsManager.getCredentials(),
     q,
-    maxResults: Math.max(1, Math.min(50, options.maxEmailsPerNewsletter)),
   });
   await credentialsManager.updateIfRefreshed(listResult.refreshedCredentials);
 
@@ -262,6 +263,11 @@ function buildPodcastInput(extractedEmails: ExtractedEmail[]): string {
     .join('\n\n===\n\n');
 }
 
+function parseSpeakers(raw: unknown): z.infer<typeof speakerSchema>[] | null {
+  const result = z.array(speakerSchema).safeParse(raw);
+  return result.success && result.data.length > 0 ? result.data : null;
+}
+
 // ============================================================================
 // Newsletter Processing
 // ============================================================================
@@ -273,10 +279,11 @@ async function generateNewsletterPodcast(
   options: PodcastOptions = { ...DEFAULT_PODCAST_OPTIONS, format: 'interview' } as PodcastOptions,
   narrativeInstructions?: string | null,
   tone?: string | null,
+  language?: string | null,
 ): Promise<PodcastResult> {
   return createPodcastFromText(
     combinedText,
-    { ...options, userId, podcastName },
+    { ...options, userId, podcastName, language: language ?? undefined },
     undefined,
     narrativeInstructions ?? undefined,
     tone ?? undefined,
@@ -291,10 +298,10 @@ async function saveNewsletterHistory(
   const history = await prisma.newsletterHistory.create({
     data: {
       newsletterId,
-      summary: JSON.stringify({
+      summary: {
         fetchedEmailCount: emails.length,
         podcast,
-      }),
+      } as unknown as Prisma.InputJsonValue,
       emails: emails.map((e) => ({
         id: e.id,
         threadId: e.threadId,
@@ -334,13 +341,21 @@ async function processNewsletter(
     const combinedText = buildPodcastInput(extractedEmails);
 
     // Step 4: Generate podcast
+    const newsletterSpeakers = parseSpeakers(newsletter.speakers);
+    const podcastOptions: PodcastOptions = {
+      ...DEFAULT_PODCAST_OPTIONS,
+      format: 'interview',
+      speakers: newsletterSpeakers ?? DEFAULT_PODCAST_OPTIONS.speakers,
+    } as PodcastOptions;
+
     const podcast = await generateNewsletterPodcast(
       combinedText,
       newsletter.userId,
       newsletter.id,
-      { ...DEFAULT_PODCAST_OPTIONS, format: 'interview' } as PodcastOptions,
+      podcastOptions,
       newsletter.narrativeInstructions,
       newsletter.tone,
+      newsletter.language,
     );
 
     // Step 5: Save history

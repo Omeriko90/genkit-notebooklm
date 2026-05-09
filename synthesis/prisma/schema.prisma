@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,58 +7,54 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  email         String        @unique
+  id            String         @id @default(cuid())
+  email         String         @unique
   password      String?
   name          String?
   avatar        String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  // Relations
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   emailAccounts EmailAccount[]
   newsletters   Newsletter[]
-  
+
   @@map("users")
 }
 
 model EmailAccount {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   userId       String
   provider     Provider
   email        String
   accessToken  String
   refreshToken String?
   expiresAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("email_accounts")
 }
 
 model Newsletter {
-  id                     String           @id @default(cuid())
-  userId                 String
-  name                   String
-  interval               Interval
-  selectedEmails         String[]
-  isActive               Boolean          @default(true)
-  lastRun                DateTime?
-  nextRun                DateTime?
-  deliveryMethod         DeliveryMethod[]
-  narrativeInstructions  String?
-  provider               Provider?
-  tone                   Tone             @default(CONVERSATIONAL)
-  isDraft                Boolean          @default(false)
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
-
-  // Relations
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  history  NewsletterHistory[]
+  id                    String              @id @default(cuid())
+  userId                String
+  name                  String
+  interval              Interval
+  selectedEmails        String[]
+  isActive              Boolean             @default(true)
+  lastRun               DateTime?
+  nextRun               DateTime?
+  deliveryMethod        DeliveryMethod[]
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  narrativeInstructions String?
+  provider              Provider?
+  tone                  Tone                @default(CONVERSATIONAL)
+  isDraft               Boolean             @default(false)
+  language              String?
+  speakers              Json?
+  history               NewsletterHistory[]
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("newsletters")
 }
@@ -69,13 +62,11 @@ model Newsletter {
 model NewsletterHistory {
   id           String     @id @default(cuid())
   newsletterId String
-  summary      String
-  emails       Json       // Array of email metadata
-  generatedAt   DateTime   @default(now())
-  
-  // Relations
-  newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
-  
+  summary      Json
+  emails       Json
+  generatedAt  DateTime   @default(now())
+  newsletter   Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
   @@map("newsletter_history")
 }
 
@@ -85,10 +76,10 @@ enum Provider {
 }
 
 enum Interval {
-  DAILY
   WEEKLY
   BIWEEKLY
   MONTHLY
+  DAILY
 }
 
 enum DeliveryMethod {

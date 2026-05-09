@@ -68,6 +68,7 @@ export const endToEndPodcastFlow = ai.defineFlow(
       
       const summaryResult = await summarizeSourcesFlow({
         sourceTexts: input.sourceTexts,
+        language: input.options.language,
       });
       metrics.summarize = Date.now() - timer;
       timer = Date.now();
@@ -80,6 +81,7 @@ export const endToEndPodcastFlow = ai.defineFlow(
         summary: summaryResult.combinedSummary,
         format: input.options.format,
         domains: input.domains,
+        language: input.options.language,
       });
       metrics.hooks = Date.now() - timer;
       timer = Date.now();
